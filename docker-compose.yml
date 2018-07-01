@@ -1,0 +1,40 @@
+version: "3"
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:v2.0.3
+    volumes:
+      - db-data:/cockroach/cockroach-data
+    networks:
+      - backend
+    ports:
+      - 26257:26257
+      - 8090:8080
+    command: ["start", "--insecure"]
+  docker-registry:
+    image: registry:2
+    volumes:
+      - registry-data:/var/lib/registry
+    networks:
+      - backend
+    ports:
+      - 5000:5000
+  app-store:
+    image: app-store
+    volumes:
+      - ./:/go/src/app-store
+    networks:
+      - backend
+    entrypoint: go run /go/src/app-store/main.go /go/src/app-store/db.go
+    depends_on:
+      - cockroachdb
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+networks:
+  backend:
+
+volumes:
+  db-data:
+  registry-data:
