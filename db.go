@@ -30,13 +30,14 @@ type dbInstaller struct {
 }
 
 func setupDB() {
-	db, err := sqlx.Connect("postgres", "host=localhost port=26257 user=root sslmode=disable")
+	log.Println("Initializing database")
+	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 user=root sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
 	db.MustExec(createDB)
 
-	db, err = sqlx.Connect("postgres", "host=localhost port=26257 dbname=installers  user=root sslmode=disable")
+	db, err = sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -59,7 +60,7 @@ func setupDB() {
 }
 
 func searchDB(providerType string) []Installer {
-	db, err := sqlx.Connect("postgres", "host=localhost port=26257 dbname=installers  user=root sslmode=disable")
+	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
