@@ -1,0 +1,25 @@
+defaultEntryPoints = ["http"]
+debug = true
+logLevel = "INFO"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+  [entryPoints.dashboard]
+  address = ":8070"
+
+
+[api]
+entryPoint = "dashboard"
+dashboard = true
+
+[file]
+  [frontends]
+    [frontends.frontend1]
+    entryPoints = ["http"]
+    backend = "backend1"
+
+  [backends]
+    [backends.backend1]
+      [backends.backend1.servers.server1]
+      url = "http://app-store:8000"

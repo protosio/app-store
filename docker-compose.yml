@@ -27,10 +27,23 @@ services:
     entrypoint: go run /go/src/app-store/main.go /go/src/app-store/db.go
     depends_on:
       - cockroachdb
+      - docker-registry
     deploy:
       restart_policy:
         condition: on-failure
         delay: 10s
+  load-balancer:
+    image: traefik:alpine
+    volumes:
+      - ./traefik.toml:/etc/traefik/traefik.toml
+    networks:
+      - backend
+    ports:
+      - 8070:8070
+      - 80:80
+      - 443:443
+    depends_on:
+      - app-store
 
 networks:
   backend:
