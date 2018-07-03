@@ -1,0 +1,28 @@
+version: 0.1
+log:
+  level: info
+  accesslog:
+    disabled: true
+  formatter: text
+storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
+    maxthreads: 100
+notifications:
+  endpoints:
+    - name: app-store
+      disabled: false
+      url: http://app-store:8000/api/v1/event
+      timeout: 1s
+      threshold: 10
+      backoff: 1s
+      ignoredmediatypes:
+        - application/octet-stream
+      ignore:
+        mediatypes:
+           - application/octet-stream
+        actions:
+           - pull
+http:
+  addr: 0.0.0.0:5000
+  host: http://apps.protos.io:5000
