@@ -14,17 +14,19 @@ services:
     image: registry:2
     volumes:
       - registry-data:/var/lib/registry
+      - ./registry-config.yml:/etc/docker/registry/config.yml
     networks:
       - backend
     ports:
       - 5000:5000
+    command: ["serve", "/etc/docker/registry/config.yml"]
   app-store:
     image: app-store
     volumes:
-      - ./:/go/src/app-store
+      - ./:/go/src/github.com/protosio/app-store
     networks:
       - backend
-    entrypoint: go run /go/src/app-store/main.go /go/src/app-store/db.go
+    entrypoint: go run /go/src/github.com/protosio/app-store/main.go /go/src/github.com/protosio/app-store/db.go
     depends_on:
       - cockroachdb
       - docker-registry
