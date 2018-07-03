@@ -10,8 +10,8 @@
 [[projects]]
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
-  revision = "7da180ee92d8bd8bb8c37fc560e673e6557c392f"
-  version = "v0.4.7"
+  revision = "67921128fb397dd80339870d2193d6b1e6856fd4"
+  version = "v0.4.8"
 
 [[projects]]
   name = "github.com/asdine/storm"
@@ -40,13 +40,16 @@
   version = "v1.3.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/docker/distribution"
   packages = [
-    "digest",
+    ".",
+    "digestset",
+    "manifest",
+    "manifest/schema2",
     "reference"
   ]
-  revision = "48294d928ced5dd9b378f7fd7c6f5da3ff3f2c89"
-  version = "v2.6.2"
+  revision = "749f6afb4572201e3c37325d0ffedb6f32be8950"
 
 [[projects]]
   name = "github.com/docker/docker"
@@ -142,7 +145,13 @@
     "resource",
     "util"
   ]
-  revision = "630b0d64e61ecd684f503a2f845ac5768f91e727"
+  revision = "0175d251539bc40b3bf38ccd72dce6b89a279db1"
+
+[[projects]]
+  name = "github.com/opencontainers/go-digest"
+  packages = ["."]
+  revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
+  version = "v1.0.0-rc1"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -189,7 +198,7 @@
     "internal/socks",
     "proxy"
   ]
-  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
+  revision = "ed29d75add3d7c4bf7ca65aac0c6df3d1420216f"
 
 [[projects]]
   branch = "master"
@@ -209,6 +218,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bb3391b362624cdd878607fcacef275f3230ab0712b94b4f52967c414bb208ef"
+  inputs-digest = "a101b061646fbdeb2483c965419ae1c2b26fc8c786e40557c6de2e654be3ee4b"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -21,7 +21,7 @@ type Installer struct {
 
 func main() {
 	log.Println("Starting the Protos app store")
-	setupDB()
+	// setupDB()
 	mainRtr := mux.NewRouter().StrictSlash(true)
 	r := mainRtr.PathPrefix("/api/v1").Subrouter()
 
