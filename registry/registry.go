@@ -10,6 +10,7 @@ import (
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/docker/api/types"
 	"github.com/nustiueudinastea/protos/daemon"
+	"github.com/protosio/app-store/installer"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,7 +41,7 @@ func processPushEvent(event Event) {
 	if event.Target.Tag == "" {
 		log.Errorf("Push event for application %s does not containg a tag. Ignoring", event.Target.Repository)
 	}
-	log.Infof("Processing push event for application %s with tag %s ", event.Target.Repository, event.Target.Tag)
+	log.Infof("Processing push event for application %s with tag %s", event.Target.Repository, event.Target.Tag)
 
 	url := fmt.Sprintf("http://docker-registry:5000/v2/%s/manifests/%s", event.Target.Repository, event.Target.Digest)
 	r, err := http.Get(url)
@@ -89,7 +90,11 @@ func processPushEvent(event Event) {
 	if err != nil {
 		log.Errorf("Could not parse metadata for installer %s(%s): %s", event.Target.Repository, event.Target.Tag, err.Error())
 	}
-	log.Println(metadata)
+	err = installer.Add(event.Target.Repository, event.Target.Tag, metadata)
+	if err != nil {
+		log.Errorf("Could not save installer %s(%s): %s", event.Target.Repository, event.Target.Tag, err.Error())
+		return
+	}
 }
 
 // ProcessEvents takes an events array and process all the events of type "push"

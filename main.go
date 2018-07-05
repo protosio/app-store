@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/protosio/app-store/db"
+	"github.com/protosio/app-store/installer"
 	"github.com/protosio/app-store/registry"
 
 	"github.com/gorilla/mux"
@@ -14,7 +15,7 @@ import (
 
 func main() {
 	log.Println("Starting the Protos app store")
-	// setupDB()
+	db.SetupDB()
 	mainRtr := mux.NewRouter().StrictSlash(true)
 	r := mainRtr.PathPrefix("/api/v1").Subrouter()
 
@@ -32,7 +33,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 		if len(val) == 0 {
 			http.Error(w, "No value for query parameter", http.StatusInternalServerError)
 		}
-		installers := db.SearchDB(val[0])
+		installers := installer.Search(val[0])
 		json.NewEncoder(w).Encode(installers)
 		return
 	}
