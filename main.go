@@ -6,18 +6,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/registry"
 
 	"github.com/gorilla/mux"
-	"github.com/nustiueudinastea/protos/daemon"
 )
-
-// Installer represents an application installer, but not a specific version of it.
-type Installer struct {
-	daemon.InstallerMetadata
-	Name      string `json:"name,omitempty"`
-	Thumbnail string `json:"thumbnail,omitempty"`
-}
 
 func main() {
 	log.Println("Starting the Protos app store")
@@ -39,7 +32,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 		if len(val) == 0 {
 			http.Error(w, "No value for query parameter", http.StatusInternalServerError)
 		}
-		installers := searchDB(val[0])
+		installers := db.SearchDB(val[0])
 		json.NewEncoder(w).Encode(installers)
 		return
 	}

@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"log"
@@ -7,6 +7,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/protosio/app-store/installer"
 )
 
 var createDB = `
@@ -51,15 +52,13 @@ func setupDB() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println(sql)
-	log.Println(args)
 	tx := db.MustBegin()
 	tx.MustExec(sql, args...)
 	tx.Commit()
 
 }
 
-func searchDB(providerType string) []Installer {
+func SearchDB(providerType string) []installer.Installer {
 	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
@@ -77,9 +76,9 @@ func searchDB(providerType string) []Installer {
 		log.Fatal(err)
 	}
 
-	installers := []Installer{}
+	installers := []installer.Installer{}
 	for _, dbinstaller := range dbinstallers {
-		installer := Installer{}
+		installer := installer.Installer{}
 		installer.Name = dbinstaller.Name
 		installer.Description = dbinstaller.Description
 		installer.Thumbnail = dbinstaller.Thumbnail
