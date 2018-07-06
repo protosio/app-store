@@ -4,10 +4,9 @@ import (
 	"github.com/nustiueudinastea/protos/daemon"
 	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/util"
-	"github.com/sirupsen/logrus"
 )
 
-var log = logrus.New()
+var log = util.GetLogger()
 
 // Installer represents an application installer, but not a specific version of it.
 type Installer struct {

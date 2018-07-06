@@ -3,18 +3,20 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/installer"
 	"github.com/protosio/app-store/registry"
+	"github.com/protosio/app-store/util"
 
 	"github.com/gorilla/mux"
 )
 
+var log = util.GetLogger()
+
 func main() {
-	log.Println("Starting the Protos app store")
+	log.Info("Starting the Protos app store")
 	db.SetupDB()
 	mainRtr := mux.NewRouter().StrictSlash(true)
 	r := mainRtr.PathPrefix("/api/v1").Subrouter()
@@ -43,7 +45,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 func processEvent(w http.ResponseWriter, r *http.Request) {
 	bodyJSON, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Error reading body: %v", err)
+		log.Errorf("Error reading body: %v", err)
 		http.Error(w, "can't read body", http.StatusBadRequest)
 		return
 	}
@@ -51,7 +53,7 @@ func processEvent(w http.ResponseWriter, r *http.Request) {
 	var events registry.Events
 	err = json.Unmarshal(bodyJSON, &events)
 	if err != nil {
-		log.Printf("Error reading body: %v", err)
+		log.Errorf("Error reading body: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

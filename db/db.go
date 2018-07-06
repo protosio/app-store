@@ -5,12 +5,12 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
+	"github.com/protosio/app-store/util"
 	// pq is required for sqlx to work even though it's not used directly
 	"github.com/lib/pq"
 )
 
-var log = logrus.New()
+var log = util.GetLogger()
 
 var createDB = `
 DROP DATABASE IF EXISTS installers;

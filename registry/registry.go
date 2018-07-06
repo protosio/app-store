@@ -11,10 +11,10 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/nustiueudinastea/protos/daemon"
 	"github.com/protosio/app-store/installer"
-	"github.com/sirupsen/logrus"
+	"github.com/protosio/app-store/util"
 )
 
-var log = logrus.New()
+var log = util.GetLogger()
 
 type Target struct {
 	MediaType  string `json:"mediaType"`
