@@ -3,6 +3,7 @@ package installer
 import (
 	"github.com/nustiueudinastea/protos/daemon"
 	"github.com/protosio/app-store/db"
+	"github.com/protosio/app-store/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,9 +41,18 @@ func installerToDB(installer Installer) db.Installer {
 func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 	dbinstaller, found := db.Get(name)
 	if found {
-		log.Info(dbinstaller)
+		log.Infof("Updating installer %s", name)
+		dbinstaller.Description = metadata.Description
+		if ok, _ := util.StringInSlice(version, dbinstaller.Versions); ok == false {
+			dbinstaller.Versions = append(dbinstaller.Versions, version)
+		}
+		dbinstaller.Provides = metadata.Provides
+		err := db.Update(dbinstaller)
+		if err != nil {
+			return err
+		}
 	} else {
-		log.Infof("Installer %s not found", name)
+		log.Infof("Installer %s not found. Adding it to the database", name)
 		installer := Installer{
 			Name:              name,
 			Versions:          []string{version},
@@ -51,7 +61,7 @@ func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 		dbinstaller = installerToDB(installer)
 		err := db.Insert(dbinstaller)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	return nil

@@ -63,7 +63,6 @@ func processPushEvent(event Event) {
 		log.Printf("Error unmarshaling image manifest: %v", err)
 		return
 	}
-	log.Info(manifest)
 
 	url = fmt.Sprintf("http://docker-registry:5000/v2/%s/blobs/%s", event.Target.Repository, manifest.Config.Digest.String())
 	log.Info(url)
@@ -82,7 +81,7 @@ func processPushEvent(event Event) {
 	var imageInfo types.ImageInspect
 	err = json.Unmarshal(bodyJSON, &imageInfo)
 	if err != nil {
-		log.Printf("Error unmarshaling image inspect info: %v", err)
+		log.Errorf("Error unmarshaling image inspect info: %v", err)
 		return
 	}
 	log.Info(imageInfo.Config.Labels)

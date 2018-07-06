@@ -26,6 +26,16 @@ CREATE TABLE installer (
 );
 `
 
+func stripNilValues(in map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+	for k, v := range in {
+		if v != nil {
+			out[k] = v
+		}
+	}
+	return out
+}
+
 // Installer represents an installer as saved by the database
 type Installer struct {
 	Name        string
@@ -45,7 +55,7 @@ func PGArrayToArray(pgarray string) []string {
 
 // SetupDB creates the db and table
 func SetupDB() {
-	log.Println("Initializing database")
+	log.Info("Initializing database")
 	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 user=root sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
@@ -57,6 +67,7 @@ func SetupDB() {
 		log.Fatalln(err)
 	}
 	db.MustExec(createTable)
+	log.Info("Database initialisation finished")
 }
 
 // Insert takes a db Installer and persists it to the database
@@ -70,6 +81,27 @@ func Insert(installer Installer) error {
 	sql, args, err := psql.
 		Insert("installer").Columns("name", "description", "thumbnail", "provides", "versions").
 		Values(installer.Name, installer.Description, installer.Thumbnail, pq.Array(installer.Provides), pq.Array(installer.Versions)).ToSql()
+	if err != nil {
+		return err
+	}
+	db.MustExec(sql, args...)
+	return nil
+}
+
+// Update takes an Installer (db) and updates all the fields for that db entry
+func Update(installer Installer) error {
+	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
+	if err != nil {
+		return err
+	}
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := psql.Update("installer").SetMap(stripNilValues(map[string]interface{}{
+		"description": installer.Description,
+		"thumbnail":   installer.Thumbnail,
+		"provides":    pq.Array(installer.Provides),
+		"versions":    pq.Array(installer.Versions),
+	})).Where("name = ?", installer.Name).ToSql()
 	if err != nil {
 		return err
 	}
