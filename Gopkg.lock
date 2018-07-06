@@ -103,6 +103,12 @@
   version = "v1.6.2"
 
 [[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/jmoiron/sqlx"
   packages = [
@@ -172,6 +178,18 @@
   version = "v1.0.5"
 
 [[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
+  version = "v0.0.3"
+
+[[projects]]
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+  version = "v1.0.1"
+
+[[projects]]
   name = "github.com/tidwall/gjson"
   packages = ["."]
   revision = "f123b340873a0084cb27267eddd8ff615115fbff"
@@ -198,7 +216,7 @@
     "internal/socks",
     "proxy"
   ]
-  revision = "ed29d75add3d7c4bf7ca65aac0c6df3d1420216f"
+  revision = "32a936f46389aa10549d60bd7833e54b01685d09"
 
 [[projects]]
   branch = "master"
@@ -207,7 +225,7 @@
     "unix",
     "windows"
   ]
-  revision = "7138fd3d9dc8335c567ca206f4333fb75eb05d56"
+  revision = "ce36f3865eeb42541ce3f87f32f8462c5687befa"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -218,6 +236,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a101b061646fbdeb2483c965419ae1c2b26fc8c786e40557c6de2e654be3ee4b"
+  inputs-digest = "26f898adeaf4877288e656f0fbdc20b78677df612cb5d30c2231e3894f8c1905"
   solver-name = "gps-cdcl"
   solver-version = 1
