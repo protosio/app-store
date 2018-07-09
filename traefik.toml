@@ -5,9 +5,10 @@ logLevel = "INFO"
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+  [entryPoints.https]
+  address = ":443"
   [entryPoints.dashboard]
   address = ":8070"
-
 
 [api]
 entryPoint = "dashboard"
@@ -15,11 +16,20 @@ dashboard = true
 
 [file]
   [frontends]
-    [frontends.frontend1]
-    entryPoints = ["http"]
-    backend = "backend1"
+    [frontends.app-store]
+      entryPoints = ["http", "https"]
+      backend = "backend1"
+      [frontends.app-store.routes]
+        [frontends.app-store.routes.route0]
+          rule = "PathPrefix:/api/"
+    [frontends.registry]
+      entryPoints = ["http", "https"]
+      backend = "backend2"
 
   [backends]
     [backends.backend1]
       [backends.backend1.servers.server1]
       url = "http://app-store:8000"
+    [backends.backend2]
+      [backends.backend2.servers.server1]
+      url = "http://docker-registry:5000"

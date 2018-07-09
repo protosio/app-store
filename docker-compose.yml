@@ -17,8 +17,8 @@ services:
       - ./registry-config.yml:/etc/docker/registry/config.yml
     networks:
       - backend
-    ports:
-      - 5000:5000
+    expose:
+      - 5000
     command: ["serve", "/etc/docker/registry/config.yml"]
   app-store:
     image: app-store
@@ -52,7 +52,7 @@ services:
     networks:
       - backend
     ports:
-      - 8070:8070
+      - 127.0.0.1:8070:8070
       - 80:80
       - 443:443
     depends_on:
