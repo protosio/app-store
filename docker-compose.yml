@@ -49,6 +49,7 @@ services:
     image: traefik:alpine
     volumes:
       - ./traefik.toml:/etc/traefik/traefik.toml
+      - ./acme.json:/acme.json
     networks:
       - backend
     ports:

@@ -1,5 +1,5 @@
 defaultEntryPoints = ["http"]
-debug = true
+debug = false
 logLevel = "INFO"
 
 [entryPoints]
@@ -33,3 +33,11 @@ dashboard = true
     [backends.backend2]
       [backends.backend2.servers.server1]
       url = "http://docker-registry:5000"
+
+[acme]
+email = "alex@giurgiu.io"
+storage = "/acme.json"
+entryPoint = "https"
+onHostRule = true
+[acme.httpChallenge]
+entryPoint = "http"
