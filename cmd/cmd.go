@@ -11,7 +11,7 @@ import (
 )
 
 var log = util.GetLogger()
-var port = 8000
+var config = util.GetConfig()
 
 var rootCmd = &cobra.Command{
 	Use:   "app-store",
@@ -22,7 +22,7 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts the app store web server",
 	Run: func(cmd *cobra.Command, args []string) {
-		http.StartWebServer(port)
+		http.StartWebServer(config.Port)
 	},
 }
 
@@ -43,7 +43,8 @@ func Execute() {
 }
 
 func init() {
-	serveCmd.PersistentFlags().IntVarP(&port, "port", "p", 8000, "port to listen on")
+	serveCmd.PersistentFlags().IntVarP(&config.Port, "port", "p", 8000, "port to listen on")
+	rootCmd.PersistentFlags().StringVarP(&config.DBHost, "database", "d", "cockroachdb", "port to listen on")
 
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(serveCmd)

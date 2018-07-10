@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -11,6 +12,7 @@ import (
 )
 
 var log = util.GetLogger()
+var config = util.GetConfig()
 
 var createDB = `
 DROP DATABASE IF EXISTS installers;
@@ -53,16 +55,20 @@ func PGArrayToArray(pgarray string) []string {
 	return strings.Split(pgarray, ",")
 }
 
+func dbConnectionString() string {
+	return fmt.Sprintf("host=%s port=%d dbname=%s user=%s sslmode=disable", config.DBHost, config.DBPort, config.DBName, config.DBUser)
+}
+
 // SetupDB creates the db and table
 func SetupDB() {
-	log.Info("Initializing database")
-	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 user=root sslmode=disable")
+	log.Infof("Initializing database on endpoint %s", config.DBHost)
+	db, err := sqlx.Connect("postgres", fmt.Sprintf("host=%s port=%d user=%s sslmode=disable", config.DBHost, config.DBPort, config.DBUser))
 	if err != nil {
 		log.Fatalln(err)
 	}
 	db.MustExec(createDB)
 
-	db, err = sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
+	db, err = sqlx.Connect("postgres", dbConnectionString())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -72,7 +78,7 @@ func SetupDB() {
 
 // Insert takes a db Installer and persists it to the database
 func Insert(installer Installer) error {
-	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
+	db, err := sqlx.Connect("postgres", dbConnectionString())
 	if err != nil {
 		return err
 	}
@@ -90,7 +96,7 @@ func Insert(installer Installer) error {
 
 // Update takes an Installer (db) and updates all the fields for that db entry
 func Update(installer Installer) error {
-	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
+	db, err := sqlx.Connect("postgres", dbConnectionString())
 	if err != nil {
 		return err
 	}
@@ -111,7 +117,7 @@ func Update(installer Installer) error {
 
 // Get returns an Installer based on the provided name
 func Get(name string) (Installer, bool) {
-	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
+	db, err := sqlx.Connect("postgres", dbConnectionString())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -142,7 +148,7 @@ func Get(name string) (Installer, bool) {
 
 // Search searches installers based on the provides field
 func Search(providerType string) ([]Installer, error) {
-	db, err := sqlx.Connect("postgres", "host=cockroachdb port=26257 dbname=installers  user=root sslmode=disable")
+	db, err := sqlx.Connect("postgres", dbConnectionString())
 	if err != nil {
 		return nil, err
 	}
