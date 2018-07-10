@@ -24,7 +24,7 @@ dashboard = true
       backend = "backend1"
       [frontends.app-store.routes]
         [frontends.app-store.routes.route0]
-          rule = "PathPrefix:/api/"
+          rule = "Host:apps.protos.io;PathPrefix:/api/"
     [frontends.registry]
       entryPoints = ["http", "https"]
       backend = "backend2"
@@ -42,5 +42,6 @@ email = "alex@giurgiu.io"
 storage = "/acme.json"
 entryPoint = "https"
 onHostRule = true
+ACMELogging = true
 [acme.httpChallenge]
 entryPoint = "http"
