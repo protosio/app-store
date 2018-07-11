@@ -1,4 +1,4 @@
-https://apps.protos.io, http://apps.protos.io {
+https://apps.protos.io {
     tls alex@giurgiu.io
     proxy /api http://app-store:8000 {
 		transparent
