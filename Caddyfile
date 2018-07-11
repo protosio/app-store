@@ -1,6 +1,6 @@
 https://apps.protos.io {
-    tls alex@giurgiu.io
-    proxy /api http://app-store:8000 {
+	tls alex@giurgiu.io
+	proxy / http://app-store:8000 {
 		transparent
 	}
 	proxy /v2 http://docker-registry:5000 {
