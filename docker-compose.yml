@@ -46,14 +46,15 @@ services:
   #   depends_on:
   #     - cockroachdb
   load-balancer:
-    image: traefik:alpine
+    image: abiosoft/caddy:0.11.0
+    environment:
+      - CADDYPATH=/etc/caddycerts
     volumes:
-      - ./traefik.toml:/etc/traefik/traefik.toml
-      - ./acme.json:/acme.json
+      - ./caddycerts:/etc/caddycerts
+      - ./Caddyfile:/etc/Caddyfile
     networks:
       - backend
     ports:
-      - 127.0.0.1:8070:8070
       - 80:80
       - 443:443
     depends_on:
