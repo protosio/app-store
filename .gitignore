@@ -1,3 +1,4 @@
 vendor/
 cockroach-data/
 acme.json
+caddycerts/
