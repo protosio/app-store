@@ -33,7 +33,11 @@ func search(w http.ResponseWriter, r *http.Request) {
 		if len(val) == 0 {
 			http.Error(w, "No value for query parameter", http.StatusInternalServerError)
 		}
-		installers := installer.Search(val[0])
+		installers, err := installer.Search(val[0])
+		if err != nil {
+			log.Errorf("Can't perform search: %v", err)
+			http.Error(w, "Internal error: can't perform search", http.StatusInternalServerError)
+		}
 		json.NewEncoder(w).Encode(installers)
 		return
 	}
