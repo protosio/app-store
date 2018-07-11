@@ -161,6 +161,9 @@ func Search(providerType string) ([]Installer, error) {
 
 	installers := []Installer{}
 	rows, err := db.Queryx(sql, args...)
+	if err != nil {
+		return nil, err
+	}
 	for rows.Next() {
 		var installer Installer
 		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
