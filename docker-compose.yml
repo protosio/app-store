@@ -49,6 +49,7 @@ services:
     image: abiosoft/caddy:0.11.0
     environment:
       - CADDYPATH=/etc/caddycerts
+      - ACME_AGREE=true
     volumes:
       - ./caddycerts:/etc/caddycerts
       - ./Caddyfile:/etc/Caddyfile
