@@ -16,7 +16,6 @@ var log = util.GetLogger()
 // StartWebServer starts the webserver on the provided port
 func StartWebServer(port int) {
 	log.Infof("Starting the web server on port %d", port)
-	// db.SetupDB()
 	mainRtr := mux.NewRouter().StrictSlash(true)
 	r := mainRtr.PathPrefix("/api/v1").Subrouter()
 
