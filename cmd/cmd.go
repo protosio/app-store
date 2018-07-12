@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/http"
 	"github.com/protosio/app-store/util"
@@ -36,6 +38,7 @@ var initCmd = &cobra.Command{
 
 //Execute is the entry point to the command line menu
 func Execute() {
+	util.SetLogLevel(logrus.DebugLevel)
 	if err := rootCmd.Execute(); err != nil {
 		log.Error(err)
 		os.Exit(1)

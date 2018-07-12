@@ -37,6 +37,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Errorf("Can't perform search: %v", err)
 			http.Error(w, "Internal error: can't perform search", http.StatusInternalServerError)
+			return
 		}
 		json.NewEncoder(w).Encode(installers)
 		return

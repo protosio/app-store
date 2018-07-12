@@ -111,6 +111,7 @@ func Update(installer Installer) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("Performing update query: {%s} using arguments {%v}", sql, args)
 	db.MustExec(sql, args...)
 	return nil
 }
@@ -128,6 +129,7 @@ func Get(name string) (Installer, bool) {
 		log.Fatal(err)
 	}
 
+	log.Debugf("Performing get query: {%s} using arguments {%v}", sql, args)
 	installers := []Installer{}
 	rows, err := db.Queryx(sql, args...)
 	for rows.Next() {
@@ -154,11 +156,12 @@ func Search(providerType string) ([]Installer, error) {
 	}
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sql, args, err := psql.Select("*").From("installer").Where("(?::string) = ANY(provides)", providerType).ToSql()
+	sql, args, err := psql.Select("*").From("installer").Where("array_length(provides, 1) > 0 AND (?::string) = ANY(provides)", providerType).ToSql()
 	if err != nil {
 		return nil, err
 	}
 
+	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
 	installers := []Installer{}
 	rows, err := db.Queryx(sql, args...)
 	if err != nil {

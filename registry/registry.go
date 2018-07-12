@@ -65,7 +65,6 @@ func processPushEvent(event Event) {
 	}
 
 	url = fmt.Sprintf("http://docker-registry:5000/v2/%s/blobs/%s", event.Target.Repository, manifest.Config.Digest.String())
-	log.Info(url)
 	r, err = http.Get(url)
 	if err != nil {
 		log.Error(err)
@@ -84,10 +83,10 @@ func processPushEvent(event Event) {
 		log.Errorf("Error unmarshaling image inspect info: %v", err)
 		return
 	}
-	log.Info(imageInfo.Config.Labels)
 	metadata, err := daemon.GetMetadata(imageInfo.Config.Labels)
 	if err != nil {
 		log.Errorf("Could not parse metadata for installer %s(%s): %s", event.Target.Repository, event.Target.Tag, err.Error())
+		return
 	}
 	err = installer.Add(event.Target.Repository, event.Target.Tag, metadata)
 	if err != nil {

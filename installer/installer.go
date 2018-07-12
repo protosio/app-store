@@ -46,6 +46,7 @@ func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 			dbinstaller.Versions = append(dbinstaller.Versions, version)
 		}
 		dbinstaller.Provides = metadata.Provides
+		log.Debugf("Updating installer %v", dbinstaller)
 		err := db.Update(dbinstaller)
 		if err != nil {
 			return err
@@ -58,6 +59,7 @@ func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 			InstallerMetadata: metadata,
 		}
 		dbinstaller = installerToDB(installer)
+		log.Debugf("Adding installer %v", dbinstaller)
 		err := db.Insert(dbinstaller)
 		if err != nil {
 			return err
