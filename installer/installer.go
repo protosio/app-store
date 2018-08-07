@@ -69,14 +69,15 @@ func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 }
 
 // Search searches the database for all the installers that match the provides field
-func Search(providerType string) ([]Installer, error) {
-	installers := []Installer{}
+func Search(providerType string) (map[string]Installer, error) {
+	installers := map[string]Installer{}
 	dbinstallers, err := db.Search(providerType)
 	if err != nil {
 		return installers, err
 	}
 	for _, installer := range dbinstallers {
-		installers = append(installers, dbToInstaller(installer))
+		installerID := util.String2SHA1(installer.Name)
+		installers[installerID] = dbToInstaller(installer)
 	}
 	return installers, nil
 }
