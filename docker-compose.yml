@@ -1,15 +1,14 @@
 version: "3"
 services:
-  cockroachdb:
-    image: cockroachdb/cockroach:v2.0.3
+  postgres:
+    image: postgres:10.5
     volumes:
-      - db-data:/cockroach/cockroach-data
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${APPSTORE_POSTGRES_PASSWD}
+      - POSTGRES_USER=${APPSTORE_POSTGRES_USER}
     networks:
       - backend
-    ports:
-      - 26257:26257
-      - 8090:8080
-    command: ["start", "--insecure"]
   docker-registry:
     image: registry:2
     volumes:
@@ -26,25 +25,15 @@ services:
       - ./:/go/src/github.com/protosio/app-store
     networks:
       - backend
-    entrypoint: go run /go/src/github.com/protosio/app-store/main.go
+    entrypoint: go run /go/src/github.com/protosio/app-store/main.go --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER} --dbpass ${APPSTORE_POSTGRES_PASSWD} --dbname ${APPSTORE_POSTGRES_USER}
     command: ["serve"]
     depends_on:
-      - cockroachdb
+      - postgres
       - docker-registry
     deploy:
       restart_policy:
         condition: on-failure
         delay: 10s
-  # app-store-init:
-  #   image: app-store
-  #   volumes:
-  #     - ./:/go/src/github.com/protosio/app-store
-  #   networks:
-  #     - backend
-  #   entrypoint: go run /go/src/github.com/protosio/app-store/main.go
-  #   command: ["init"]
-  #   depends_on:
-  #     - cockroachdb
   load-balancer:
     image: abiosoft/caddy:0.11.0
     environment:
