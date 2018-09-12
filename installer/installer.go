@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"errors"
+
 	"github.com/nustiueudinastea/protos/daemon"
 	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/util"
@@ -69,15 +71,29 @@ func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 }
 
 // Search searches the database for all the installers that match the provides field
-func Search(providerType string) (map[string]Installer, error) {
+func Search(providerType string, general string) (map[string]Installer, error) {
 	installers := map[string]Installer{}
-	dbinstallers, err := db.Search(providerType)
-	if err != nil {
-		return installers, err
+	if providerType != "" {
+		dbinstallers, err := db.SearchProvider(providerType)
+		if err != nil {
+			return installers, err
+		}
+		for _, installer := range dbinstallers {
+			installerID := util.String2SHA1(installer.Name)
+			installers[installerID] = dbToInstaller(installer)
+		}
+	} else if general != "" {
+		dbinstallers, err := db.Search(general)
+		if err != nil {
+			return installers, err
+		}
+		for _, installer := range dbinstallers {
+			installerID := util.String2SHA1(installer.Name)
+			installers[installerID] = dbToInstaller(installer)
+		}
+	} else {
+		return installers, errors.New("Either the provider type or the general search string needs to be provided")
 	}
-	for _, installer := range dbinstallers {
-		installerID := util.String2SHA1(installer.Name)
-		installers[installerID] = dbToInstaller(installer)
-	}
+
 	return installers, nil
 }
