@@ -117,6 +117,38 @@ func Get(name string) (Installer, bool) {
 	return installers[0], true
 }
 
+// GetAll retrieves all installers from the database
+func GetAll() ([]Installer, error) {
+	db, err := sqlx.Connect("postgres", dbConnectionString())
+	if err != nil {
+		return nil, err
+	}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sql, args, err := psql.Select("name", "description", "thumbnail", "provides", "versions").From("installer").ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
+	installers := []Installer{}
+	rows, err := db.Queryx(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var installer Installer
+		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
+		if err != nil {
+			return nil, err
+		}
+		installers = append(installers, installer)
+	}
+
+	return installers, nil
+
+}
+
 // SearchProvider searches installers based on the provides field
 func SearchProvider(providerType string) ([]Installer, error) {
 	db, err := sqlx.Connect("postgres", dbConnectionString())

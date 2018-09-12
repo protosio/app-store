@@ -20,10 +20,22 @@ func StartWebServer(port int) {
 	r := mainRtr.PathPrefix("/api/v1").Subrouter()
 
 	r.HandleFunc("/search", search).Methods("GET")
+	r.HandleFunc("/installers/all", getAllInstallers).Methods("GET")
 	r.HandleFunc("/event", processEvent).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 
+}
+
+func getAllInstallers(w http.ResponseWriter, r *http.Request) {
+	installers, err := installer.GetAll()
+	if err != nil {
+		log.Errorf("Can't retrieve installers: %v", err)
+		http.Error(w, "Internal error: can't retrieve installers", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(installers)
+	return
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
