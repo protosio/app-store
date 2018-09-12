@@ -30,6 +30,8 @@ services:
     depends_on:
       - postgres
       - docker-registry
+    expose:
+      - 8000
     deploy:
       restart_policy:
         condition: on-failure
