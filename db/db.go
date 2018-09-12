@@ -45,6 +45,29 @@ func dbConnectionString() string {
 	return fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", config.DBHost, config.DBPort, config.DBName, config.DBUser, config.DBPass)
 }
 
+func dbQuery(sql string, args []interface{}) ([]Installer, error) {
+	db, err := sqlx.Connect("postgres", dbConnectionString())
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
+	installers := []Installer{}
+	rows, err := db.Queryx(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var installer Installer
+		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
+		if err != nil {
+			return nil, err
+		}
+		installers = append(installers, installer)
+	}
+	return installers, nil
+}
+
 // Insert takes a db Installer and persists it to the database
 func Insert(installer Installer) error {
 	db, err := sqlx.Connect("postgres", dbConnectionString())
@@ -87,28 +110,15 @@ func Update(installer Installer) error {
 
 // Get returns an Installer based on the provided name
 func Get(name string) (Installer, bool) {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	sql, args, err := psql.Select("*").From("installer").Where(sq.Eq{"name": name}).Limit(1).ToSql()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Debugf("Performing get query: {%s} using arguments {%v}", sql, args)
-	installers := []Installer{}
-	rows, err := db.Queryx(sql, args...)
-	for rows.Next() {
-		var installer Installer
-		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
-		if err != nil {
-			log.Error(err.Error())
-			return Installer{}, false
-		}
-		installers = append(installers, installer)
+	installers, err := dbQuery(sql, args)
+	if err != nil {
+		return Installer{}, false
 	}
 
 	if len(installers) < 1 {
@@ -119,62 +129,31 @@ func Get(name string) (Installer, bool) {
 
 // GetAll retrieves all installers from the database
 func GetAll() ([]Installer, error) {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
-	if err != nil {
-		return nil, err
-	}
-
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	sql, args, err := psql.Select("name", "description", "thumbnail", "provides", "versions").From("installer").ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
-	installers := []Installer{}
-	rows, err := db.Queryx(sql, args...)
+	installers, err := dbQuery(sql, args)
 	if err != nil {
 		return nil, err
 	}
-	for rows.Next() {
-		var installer Installer
-		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
-		if err != nil {
-			return nil, err
-		}
-		installers = append(installers, installer)
-	}
 
 	return installers, nil
-
 }
 
 // SearchProvider searches installers based on the provides field
 func SearchProvider(providerType string) ([]Installer, error) {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
-	if err != nil {
-		return nil, err
-	}
-
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	sql, args, err := psql.Select("name", "description", "thumbnail", "provides", "versions").From("installer").Where("array_length(provides, 1) > 0 AND (?) = ANY(provides)", providerType).ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
-	installers := []Installer{}
-	rows, err := db.Queryx(sql, args...)
+	installers, err := dbQuery(sql, args)
 	if err != nil {
 		return nil, err
-	}
-	for rows.Next() {
-		var installer Installer
-		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
-		if err != nil {
-			return nil, err
-		}
-		installers = append(installers, installer)
 	}
 
 	return installers, nil
@@ -182,11 +161,6 @@ func SearchProvider(providerType string) ([]Installer, error) {
 
 // Search searches installers using a full text search on name, description and provides field
 func Search(searchTerm string) ([]Installer, error) {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
-	if err != nil {
-		return nil, err
-	}
-
 	sql := `SELECT name, description, thumbnail, provides, versions
 FROM ( SELECT
         name, description, thumbnail, provides, versions,
@@ -201,19 +175,9 @@ ORDER BY ts_rank(installer_search.document, to_tsquery($1)) DESC;`
 
 	args := []interface{}{searchTerm}
 
-	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
-	installers := []Installer{}
-	rows, err := db.Queryx(sql, args...)
+	installers, err := dbQuery(sql, args)
 	if err != nil {
 		return nil, err
-	}
-	for rows.Next() {
-		var installer Installer
-		err := rows.Scan(&installer.Name, &installer.Description, &installer.Thumbnail, pq.Array(&installer.Provides), pq.Array(&installer.Versions))
-		if err != nil {
-			return nil, err
-		}
-		installers = append(installers, installer)
 	}
 
 	return installers, nil
