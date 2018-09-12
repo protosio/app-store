@@ -5,7 +5,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/http"
 	"github.com/protosio/app-store/util"
 
@@ -28,14 +27,6 @@ var serveCmd = &cobra.Command{
 	},
 }
 
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initializes the database for the app store",
-	Run: func(cmd *cobra.Command, args []string) {
-		db.SetupDB()
-	},
-}
-
 //Execute is the entry point to the command line menu
 func Execute() {
 	util.SetLogLevel(logrus.DebugLevel)
@@ -47,8 +38,11 @@ func Execute() {
 
 func init() {
 	serveCmd.PersistentFlags().IntVarP(&config.Port, "port", "p", 8000, "port to listen on")
-	rootCmd.PersistentFlags().StringVarP(&config.DBHost, "database", "d", "cockroachdb", "port to listen on")
+	rootCmd.PersistentFlags().StringVarP(&config.DBHost, "dbhost", "", "database", "database host to connect to")
+	rootCmd.PersistentFlags().StringVarP(&config.DBName, "dbname", "", "installers", "database name to use")
+	rootCmd.PersistentFlags().StringVarP(&config.DBPass, "dbpass", "", "", "database password to use")
+	rootCmd.PersistentFlags().StringVarP(&config.DBUser, "dbuser", "", "installers", "database user to use")
+	rootCmd.PersistentFlags().IntVarP(&config.DBPort, "dbport", "", 5432, "database port to use")
 
-	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(serveCmd)
 }
