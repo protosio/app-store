@@ -42,9 +42,7 @@ func PGArrayToArray(pgarray string) []string {
 }
 
 func dbConnectionString() string {
-	constr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", config.DBHost, config.DBPort, config.DBName, config.DBUser, config.DBPass)
-	log.Debug(constr)
-	return constr
+	return fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", config.DBHost, config.DBPort, config.DBName, config.DBUser, config.DBPass)
 }
 
 // Insert takes a db Installer and persists it to the database
