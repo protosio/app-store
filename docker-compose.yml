@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres:10.5
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${APPSTORE_POSTGRES_PASSWD}
       - POSTGRES_USER=${APPSTORE_POSTGRES_USER}
@@ -54,5 +54,6 @@ networks:
   backend:
 
 volumes:
-  db-data:
+  postgres-data:
+    driver: dm
   registry-data:
