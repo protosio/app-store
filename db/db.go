@@ -65,6 +65,7 @@ func dbQuery(sql string, args []interface{}) ([]Installer, error) {
 		}
 		installers = append(installers, installer)
 	}
+	log.Debugf("Query returned: %v", installers)
 	return installers, nil
 }
 
@@ -111,13 +112,14 @@ func Update(installer Installer) error {
 // Get returns an Installer based on the provided name
 func Get(name string) (Installer, bool) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sql, args, err := psql.Select("*").From("installer").Where(sq.Eq{"name": name}).Limit(1).ToSql()
+	sql, args, err := psql.Select("name", "description", "thumbnail", "provides", "versions").From("installer").Where(sq.Eq{"name": name}).Limit(1).ToSql()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	installers, err := dbQuery(sql, args)
 	if err != nil {
+		log.Errorf("Error while performing get query: %s", err.Error())
 		return Installer{}, false
 	}
 
