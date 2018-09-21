@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/http"
 	"github.com/protosio/app-store/util"
 
@@ -23,6 +24,10 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts the app store web server",
 	Run: func(cmd *cobra.Command, args []string) {
+		err := db.Connect()
+		if err != nil {
+			log.Fatal(err)
+		}
 		http.StartWebServer(config.Port)
 	},
 }

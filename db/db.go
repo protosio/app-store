@@ -13,6 +13,7 @@ import (
 
 var log = util.GetLogger()
 var config = util.GetConfig()
+var db *sqlx.DB
 
 func stripNilValues(in map[string]interface{}) map[string]interface{} {
 	out := make(map[string]interface{})
@@ -45,12 +46,18 @@ func dbConnectionString() string {
 	return fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", config.DBHost, config.DBPort, config.DBName, config.DBUser, config.DBPass)
 }
 
-func dbQuery(sql string, args []interface{}) ([]Installer, error) {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
+// Connect connects to the databse at program start
+func Connect() error {
+	var err error
+	log.Debugf("Connecting to the db using host: %s port: %d", config.DBHost, config.DBPort)
+	db, err = sqlx.Connect("postgres", dbConnectionString())
 	if err != nil {
-		return nil, err
+		return err
 	}
+	return nil
+}
 
+func dbQuery(sql string, args []interface{}) ([]Installer, error) {
 	log.Debugf("Performing search query: {%s} using arguments {%v}", sql, args)
 	installers := []Installer{}
 	rows, err := db.Queryx(sql, args...)
@@ -71,10 +78,6 @@ func dbQuery(sql string, args []interface{}) ([]Installer, error) {
 
 // Insert takes a db Installer and persists it to the database
 func Insert(installer Installer) error {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
-	if err != nil {
-		return err
-	}
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	sql, args, err := psql.
@@ -89,10 +92,6 @@ func Insert(installer Installer) error {
 
 // Update takes an Installer (db) and updates all the fields for that db entry
 func Update(installer Installer) error {
-	db, err := sqlx.Connect("postgres", dbConnectionString())
-	if err != nil {
-		return err
-	}
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	sql, args, err := psql.Update("installer").SetMap(stripNilValues(map[string]interface{}{
