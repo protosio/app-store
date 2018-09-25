@@ -153,21 +153,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/nustiueudinastea/protos"
-  packages = [
-    "capability",
-    "config",
-    "daemon",
-    "database",
-    "meta",
-    "platform",
-    "resource",
-    "util"
-  ]
-  revision = "c2d8d6ce3c44ca8a8a4723f40db207b51c188f9c"
-
-[[projects]]
   name = "github.com/opencontainers/go-digest"
   packages = ["."]
   revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
@@ -187,6 +172,21 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/protosio/protos"
+  packages = [
+    "capability",
+    "config",
+    "daemon",
+    "database",
+    "meta",
+    "platform",
+    "resource",
+    "util"
+  ]
+  revision = "ec7483171701f93c613495e3a8b79a98f6c8a4d5"
 
 [[projects]]
   name = "github.com/rs/xid"
@@ -265,6 +265,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d229f355764126929bfd49d3b490ac357a13b6638e7d261dc6d891061c293faf"
+  inputs-digest = "5b655f3771a6ca5abbdc9d2cbd13934c65f81c4b118c6d00ff2b58dd922971be"
   solver-name = "gps-cdcl"
   solver-version = 1
