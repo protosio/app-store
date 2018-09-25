@@ -182,15 +182,18 @@ group by
 
 // Search searches installers using a full text search on name, description and provides field
 func Search(searchTerm string) ([]Installer, error) {
-	sql := `SELECT name, description, thumbnail, provides, versions
-FROM ( SELECT
-        name, description, thumbnail, provides, versions,
-        to_tsvector(name) ||
-        to_tsvector(description) ||
-        to_tsvector(array_to_string(provides, ' '))
-       AS document
-       FROM installer
-       GROUP BY name) installer_search
+	sql := `
+SELECT name, thumbnail, version_metadata
+FROM (
+    SELECT
+        name,
+        thumbnail,
+        version_metadata,
+		to_tsvector(name) || to_tsvector('English', version_metadata::text)
+	AS document
+	FROM installer
+	GROUP BY name
+    ) installer_search
 WHERE installer_search.document @@ to_tsquery($1)
 ORDER BY ts_rank(installer_search.document, to_tsquery($1)) DESC;`
 
