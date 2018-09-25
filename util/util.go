@@ -9,12 +9,14 @@ import (
 
 // Config is a struct that is used to share config params all over the code
 type Config struct {
-	Port   int
-	DBHost string
-	DBName string
-	DBUser string
-	DBPass string
-	DBPort int
+	Port         int
+	DBHost       string
+	DBName       string
+	DBUser       string
+	DBPass       string
+	DBPort       int
+	RegistryHost string
+	RegistryPort int
 }
 
 // Log is the global logger
