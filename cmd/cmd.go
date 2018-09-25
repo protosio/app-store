@@ -7,6 +7,7 @@ import (
 
 	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/http"
+	"github.com/protosio/app-store/registry"
 	"github.com/protosio/app-store/util"
 
 	"github.com/spf13/cobra"
@@ -32,6 +33,21 @@ var serveCmd = &cobra.Command{
 	},
 }
 
+var scanCmd = &cobra.Command{
+	Use:   "scan",
+	Short: "Runs a full registry scan and imports all installers",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := db.Connect()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = registry.FullScan()
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 //Execute is the entry point to the command line menu
 func Execute() {
 	util.SetLogLevel(logrus.DebugLevel)
@@ -50,4 +66,5 @@ func init() {
 	rootCmd.PersistentFlags().IntVarP(&config.DBPort, "dbport", "", 5432, "database port to use")
 
 	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(scanCmd)
 }
