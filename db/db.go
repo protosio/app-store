@@ -201,9 +201,5 @@ GROUP BY installer.name, installer.thumbnail;`
 		return nil, err
 	}
 
-	for _, inst := range installers {
-		log.Debug(inst)
-	}
-
 	return installers, nil
 }
