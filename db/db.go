@@ -143,34 +143,29 @@ func GetAll() ([]Installer, error) {
 
 // SearchProvider searches installers based on the provides field
 func SearchProvider(providerType string) ([]Installer, error) {
-	// psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	// sql, args, err := psql.Select("name", "thumbnail", "version_metadata").From("installer").Where("array_length(provides, 1) > 0 AND (?) = ANY(provides)", providerType).ToSql()
-	// if err != nil {
-	// 	return nil, err
-	// }
+
 	sql := `
-select
+SELECT
     installer.name,
     installer.thumbnail,
-    jsonb_object_agg(installer.key, installer.value) as version_metadata
-from
-    (
-        select
-            name,
-            thumbnail,
-            key,
-            value,
-            value -> 'provides' as provides
-        from
-            installer,
-            jsonb_each(version_metadata)
-        WHERE
-            $1 = ANY(provides)
-    ) installer
-group by
+    jsonb_object_agg(installer.key, installer.value) AS version_metadata
+FROM
+	(SELECT
+	    name,
+	    thumbnail,
+	    key,
+	    VALUE
+	FROM
+	    installer,
+	    jsonb_each(version_metadata)
+	WHERE
+	    VALUE -> 'provides' @> ANY (ARRAY [$1]::jsonb[])) installer
+GROUP BY
     installer.name,
 	installer.thumbnail;`
-	args := []interface{}{providerType}
+	// sorounding the search term in quotes is required for the pq jsonb search
+	param := "\"" + providerType + "\""
+	args := []interface{}{param}
 
 	installers, err := dbQuery(sql, args)
 	if err != nil {
