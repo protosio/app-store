@@ -67,7 +67,7 @@ func dbQuery(sql string, args []interface{}) ([]Installer, error) {
 	}
 	for rows.Next() {
 		var installer Installer
-		err := rows.Scan(&installer.Name, &installer.Thumbnail, &installer.VersionMetadata)
+		err := rows.Scan(&installer.ID, &installer.Name, &installer.Thumbnail, &installer.VersionMetadata)
 		if err != nil {
 			return nil, err
 		}
