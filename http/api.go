@@ -21,6 +21,7 @@ func StartWebServer(port int) {
 
 	r.HandleFunc("/search", search).Methods("GET")
 	r.HandleFunc("/installers/all", getAllInstallers).Methods("GET")
+	r.HandleFunc("/installers/{installerID}", getInstaller).Methods("GET")
 	r.HandleFunc("/event", processEvent).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
@@ -32,6 +33,20 @@ func getAllInstallers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("Can't retrieve installers: %v", err)
 		http.Error(w, "Internal error: can't retrieve installers", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(installers)
+	return
+}
+
+func getInstaller(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	installerID := vars["installerID"]
+
+	installer, err := installer.Get(installerID)
+	if err != nil {
+		log.Errorf("Can't retrieve installer %s: %v", installerID, err)
+		http.Error(w, "Internal error: can't retrieve installer "+installerID, http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(installers)

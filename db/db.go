@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"github.com/protosio/app-store/util"
+
 	// pq is required for sqlx to work even though it's not used directly
 	_ "github.com/lib/pq"
 )
@@ -28,6 +29,7 @@ func stripNilValues(in map[string]interface{}) map[string]interface{} {
 
 // Installer represents an installer as saved by the database
 type Installer struct {
+	ID              string
 	Name            string
 	Thumbnail       string
 	VersionMetadata sqlxTypes.JSONText
@@ -94,6 +96,7 @@ func Update(installer Installer) error {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	sql, args, err := psql.Update("installer").SetMap(stripNilValues(map[string]interface{}{
+		"id":               installer.ID,
 		"thumbnail":        installer.Thumbnail,
 		"version_metadata": installer.VersionMetadata,
 	})).Where("name = ?", installer.Name).ToSql()
@@ -105,10 +108,10 @@ func Update(installer Installer) error {
 	return nil
 }
 
-// Get returns an Installer based on the provided name
-func Get(name string) (Installer, bool, error) {
+// Get returns an Installer based on the provided filter
+func Get(filter map[string]interface{}) (Installer, bool, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sql, args, err := psql.Select("name", "thumbnail", "version_metadata").From("installer").Where(sq.Eq{"name": name}).Limit(1).ToSql()
+	sql, args, err := psql.Select("id", "name", "thumbnail", "version_metadata").From("installer").Where(filter).Limit(1).ToSql()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,7 +131,7 @@ func Get(name string) (Installer, bool, error) {
 // GetAll retrieves all installers from the database
 func GetAll() ([]Installer, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	sql, args, err := psql.Select("name", "thumbnail", "version_metadata").From("installer").ToSql()
+	sql, args, err := psql.Select("id", "name", "thumbnail", "version_metadata").From("installer").ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -146,21 +149,24 @@ func SearchProvider(providerType string) ([]Installer, error) {
 
 	sql := `
 SELECT
+	installer.id,
     installer.name,
     installer.thumbnail,
     jsonb_object_agg(installer.key, installer.value) AS version_metadata
 FROM
 	(SELECT
-	    name,
-	    thumbnail,
-	    key,
-	    VALUE
+		id,
+		name,
+		thumbnail,
+		key,
+		VALUE
 	FROM
-	    installer,
-	    jsonb_each(version_metadata)
+		installer,
+		jsonb_each(version_metadata)
 	WHERE
-	    VALUE -> 'provides' @> ANY (ARRAY [$1]::jsonb[])) installer
+		VALUE -> 'provides' @> ANY (ARRAY [$1]::jsonb[])) installer
 GROUP BY
+	installer.id,
     installer.name,
 	installer.thumbnail;`
 	// sorounding the search term in quotes is required for the pq jsonb search
@@ -179,20 +185,22 @@ GROUP BY
 func Search(searchTerm string) ([]Installer, error) {
 	sql := `
 SELECT
-    installer.name,
-    installer.thumbnail,
-    jsonb_object_agg(installer.key, installer.value) AS version_metadata
+	installer.id,
+	installer.name,
+	installer.thumbnail,
+	jsonb_object_agg(installer.key, installer.value) AS version_metadata
 FROM
-    (SELECT
-        name,
-        thumbnail,
-        key,
-        VALUE,
-        to_tsvector(name) || to_tsvector('English', value::text) AS tsvdata
+	(SELECT
+		id,
+		name,
+		thumbnail,
+		key,
+		VALUE,
+		to_tsvector(name) || to_tsvector('English', value::text) AS tsvdata
 FROM installer,
      jsonb_each(version_metadata)) installer
 WHERE installer.tsvdata @@ to_tsquery($1)
-GROUP BY installer.name, installer.thumbnail;`
+GROUP BY installer.id, installer.name, installer.thumbnail;`
 
 	args := []interface{}{searchTerm}
 
