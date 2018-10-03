@@ -49,7 +49,7 @@ func getInstaller(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error: can't retrieve installer "+installerID, http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(installers)
+	json.NewEncoder(w).Encode(installer)
 	return
 }
 
