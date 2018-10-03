@@ -1,4 +1,4 @@
 BEGIN;
-ALTER TABLE installer ADD COLUMN id VARCHAR;
+ALTER TABLE installer ADD COLUMN id VARCHAR NOT NULL DEFAULT 'n/a';
 CREATE INDEX id_idx ON installer (id);
 END;
