@@ -49,6 +49,7 @@ func dbToInstallers(dbInstallers []db.Installer) (map[string]Installer, error) {
 
 func installerToDB(installer Installer) (db.Installer, error) {
 	dbInstaller := db.Installer{
+		ID:        installer.ID,
 		Name:      installer.Name,
 		Thumbnail: installer.Thumbnail,
 	}
