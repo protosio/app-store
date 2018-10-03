@@ -75,11 +75,10 @@ func Add(name string, version string, metadata daemon.InstallerMetadata) error {
 			log.Debugf("Version %s for installer %s already in db", version, name)
 			if cmp.Equal(oldMetadata, metadata) {
 				log.Debugf("No new metadata detected for %s:%s", name, version)
-				return nil
+			} else {
+				log.Debugf("Detected new metadata for %s:%s. Updating in db", name, version)
+				installer.VersionMetadata[version] = metadata
 			}
-
-			log.Debugf("Detected new metadata for %s:%s. Updating in db", name, version)
-			installer.VersionMetadata[version] = metadata
 		} else {
 			log.Infof("Adding version %s for installer %s", version, name)
 			installer.VersionMetadata[version] = metadata
