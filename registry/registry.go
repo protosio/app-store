@@ -96,6 +96,11 @@ func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error)
 	}
 	defer r.Body.Close()
 
+	imageDigest := r.Header.Get("docker-content-digest")
+	if imageDigest == "" {
+		return metadata, fmt.Errorf("The image digest is empty. Cannot use image %s:%s", name, tag)
+	}
+
 	bodyJSON, err = ioutil.ReadAll(r.Body)
 	if err != nil {
 		return metadata, fmt.Errorf("Error reading image %s:%s inspect data: %v", name, tag, err)
@@ -109,6 +114,7 @@ func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error)
 	if err != nil {
 		return metadata, fmt.Errorf("Could not parse metadata for image %s:%s : %s", name, tag, err)
 	}
+	metadata.PlatformID = imageDigest
 
 	return metadata, nil
 }
