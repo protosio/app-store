@@ -114,7 +114,7 @@ func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error)
 	if err != nil {
 		return metadata, fmt.Errorf("Could not parse metadata for image %s:%s : %s", name, tag, err)
 	}
-	metadata.PlatformID = imageDigest
+	metadata.PlatformID = name + "@" + imageDigest
 
 	return metadata, nil
 }
