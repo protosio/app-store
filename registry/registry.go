@@ -77,6 +77,11 @@ func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error)
 	}
 	defer r.Body.Close()
 
+	imageDigest := r.Header.Get("docker-content-digest")
+	if imageDigest == "" {
+		return metadata, fmt.Errorf("The image digest is empty. Cannot use image %s:%s", name, tag)
+	}
+
 	bodyJSON, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return metadata, err
@@ -95,11 +100,6 @@ func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error)
 		return metadata, fmt.Errorf("Error retrieving image %s:%s blob: %v", name, tag, err)
 	}
 	defer r.Body.Close()
-
-	imageDigest := r.Header.Get("docker-content-digest")
-	if imageDigest == "" {
-		return metadata, fmt.Errorf("The image digest is empty. Cannot use image %s:%s", name, tag)
-	}
 
 	bodyJSON, err = ioutil.ReadAll(r.Body)
 	if err != nil {
