@@ -7,3 +7,11 @@ https://apps.protos.io {
 		transparent
 	}
 }
+
+https://releases.protos.io {
+	tls alex@giurgiu.io
+	root /protos-releases
+	log /protos-releases.log
+	gzip
+	browse
+}
