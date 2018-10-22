@@ -44,6 +44,7 @@ services:
     volumes:
       - ./caddycerts:/etc/caddycerts
       - ./Caddyfile:/etc/Caddyfile
+      - ./releases-data:/protos-releases
     networks:
       - backend
     ports:
