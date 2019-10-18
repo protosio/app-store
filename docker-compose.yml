@@ -3,26 +3,28 @@ services:
   postgres:
     image: postgres:10.5
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - /mnt/protos_volumes/volumes/app-store/pg-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${APPSTORE_POSTGRES_PASSWD}
       - POSTGRES_USER=${APPSTORE_POSTGRES_USER}
     networks:
       - backend
+    restart: unless-stopped
   docker-registry:
     image: registry:2
     volumes:
-      - registry-data:/var/lib/registry
-      - ./registry-config.yml:/etc/docker/registry/config.yml
+      - /mnt/protos_volumes/volumes/app-store/registry-data:/var/lib/registry
+      - /mnt/protos_volumes/volumes/app-store/registry-config.yml:/etc/docker/registry/config.yml
     networks:
       - backend
     expose:
       - 5000
     command: ["serve", "/etc/docker/registry/config.yml"]
+    restart: unless-stopped
   app-store:
     image: app-store
     volumes:
-      - ./:/go/src/github.com/protosio/app-store
+      - /mnt/protos_volumes/volumes/app-store/app-store-src:/go/src/github.com/protosio/app-store
     networks:
       - backend
     entrypoint: go run /go/src/github.com/protosio/app-store/main.go --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER} --dbpass ${APPSTORE_POSTGRES_PASSWD} --dbname ${APPSTORE_POSTGRES_USER}
@@ -32,31 +34,7 @@ services:
       - docker-registry
     expose:
       - 8000
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-  load-balancer:
-    image: abiosoft/caddy:0.11.0
-    environment:
-      - CADDYPATH=/etc/caddycerts
-      - ACME_AGREE=true
-    volumes:
-      - ./caddycerts:/etc/caddycerts
-      - ./Caddyfile:/etc/Caddyfile
-      - ./releases-data:/protos-releases
-    networks:
-      - backend
-    ports:
-      - 80:80
-      - 443:443
-    depends_on:
-      - app-store
+    restart: unless-stopped
 
 networks:
   backend:
-
-volumes:
-  postgres-data:
-    driver: dm
-  registry-data:
