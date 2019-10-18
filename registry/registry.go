@@ -2,16 +2,19 @@ package registry
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/docker/api/types"
 	"github.com/protosio/app-store/installer"
 	"github.com/protosio/app-store/util"
-	"github.com/protosio/protos/daemon"
 )
 
 var log = util.GetLogger()
@@ -37,6 +40,67 @@ type Events struct {
 	Events []Event `json:"events"`
 }
 
+func parsePublicPorts(publicports string) []util.Port {
+	ports := []util.Port{}
+	for _, portstr := range strings.Split(publicports, ",") {
+		portParts := strings.Split(portstr, "/")
+		if len(portParts) != 2 {
+			log.Errorf("Error parsing installer port string %s", portstr)
+			continue
+		}
+		portNr, err := strconv.Atoi(portParts[0])
+		if err != nil {
+			log.Errorf("Error parsing installer port string %s", portstr)
+			continue
+		}
+		if portNr < 1 || portNr > 0xffff {
+			log.Errorf("Installer port is out of range %s (valid range is 1-65535)", portstr)
+			continue
+		}
+		port := util.Port{Nr: portNr}
+		if strings.ToUpper(portParts[1]) == string(util.TCP) {
+			port.Type = util.TCP
+		} else if strings.ToUpper(portParts[1]) == string(util.UDP) {
+			port.Type = util.UDP
+		} else {
+			log.Errorf("Invalid protocol(%s) for port(%s)", portParts[1], portParts[0])
+			continue
+		}
+		ports = append(ports, port)
+	}
+	return ports
+}
+
+// parseMetadata parses the image metadata from the image labels
+func parseMetadata(labels map[string]string) (installer.InstallerMetadata, error) {
+	r := regexp.MustCompile("(^protos.installer.metadata.)(\\w+)")
+	metadata := installer.InstallerMetadata{}
+	for label, value := range labels {
+		labelParts := r.FindStringSubmatch(label)
+		if len(labelParts) == 3 {
+			switch labelParts[2] {
+			case "capabilities":
+				metadata.Capabilities = strings.Split(value, ",")
+			case "params":
+				metadata.Params = strings.Split(value, ",")
+			case "provides":
+				metadata.Provides = strings.Split(value, ",")
+			case "requires":
+				metadata.Requires = strings.Split(value, ",")
+			case "publicports":
+				metadata.PublicPorts = parsePublicPorts(value)
+			case "description":
+				metadata.Description = value
+			}
+		}
+
+	}
+	if metadata.Description == "" {
+		return metadata, errors.New("installer metadata field 'description' is mandatory")
+	}
+	return metadata, nil
+}
+
 func getImageTags(name string) ([]string, error) {
 	var tagList struct{ Tags []string }
 	log.Infof("Retrieving tags for Docker image %s", name)
@@ -59,8 +123,8 @@ func getImageTags(name string) ([]string, error) {
 	return tagList.Tags, nil
 }
 
-func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error) {
-	var metadata daemon.InstallerMetadata
+func getImageMetadata(name string, tag string) (installer.InstallerMetadata, error) {
+	var metadata installer.InstallerMetadata
 	log.Infof("Retrieving metadata for image %s:%s", name, tag)
 	httpClient := &http.Client{}
 
@@ -110,7 +174,7 @@ func getImageMetadata(name string, tag string) (daemon.InstallerMetadata, error)
 	if err != nil {
 		return metadata, fmt.Errorf("Error unmarshalling image %s:%s inspect data: %v", name, tag, err)
 	}
-	metadata, err = daemon.GetMetadata(imageInfo.Config.Labels)
+	metadata, err = parseMetadata(imageInfo.Config.Labels)
 	if err != nil {
 		return metadata, fmt.Errorf("Could not parse metadata for image %s:%s : %s", name, tag, err)
 	}

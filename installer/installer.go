@@ -10,17 +10,29 @@ import (
 
 	"github.com/protosio/app-store/db"
 	"github.com/protosio/app-store/util"
-	"github.com/protosio/protos/daemon"
 )
 
 var log = util.GetLogger()
 
+// InstallerMetadata holds metadata for the installer
+type InstallerMetadata struct {
+	Params          []string    `json:"params"`
+	Provides        []string    `json:"provides"`
+	Requires        []string    `json:"requires"`
+	PublicPorts     []util.Port `json:"publicports"`
+	Description     string      `json:"description"`
+	PlatformID      string      `json:"platformid"`
+	PlatformType    string      `json:"platformtype"`
+	PersistancePath string      `json:"persistancepath"`
+	Capabilities    []string    `json:"capabilities"`
+}
+
 // Installer represents an application installer, but not a specific versio of it.
 type Installer struct {
-	ID              string                              `json:"id"`
-	Name            string                              `json:"name,omitempty"`
-	Thumbnail       string                              `json:"thumbnail,omitempty"`
-	VersionMetadata map[string]daemon.InstallerMetadata `json:"versions"`
+	ID              string                       `json:"id"`
+	Name            string                       `json:"name,omitempty"`
+	Thumbnail       string                       `json:"thumbnail,omitempty"`
+	VersionMetadata map[string]InstallerMetadata `json:"versions"`
 }
 
 func dbToInstaller(dbinstaller db.Installer) (Installer, error) {
@@ -62,7 +74,7 @@ func installerToDB(installer Installer) (db.Installer, error) {
 }
 
 // Add takes an installer and persists it to the database
-func Add(name string, version string, metadata daemon.InstallerMetadata) error {
+func Add(name string, version string, metadata InstallerMetadata) error {
 	dbinstaller, found, err := db.Get(map[string]interface{}{"name": name})
 	if err != nil {
 		return err
