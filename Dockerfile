@@ -1,8 +1,12 @@
-FROM golang:1.13.3
+FROM golang:1.13.3 as builder
 
 ADD . "/go/src/github.com/protosio/app-store"
 WORKDIR "/go/src/github.com/protosio/app-store"
-RUN go build -o app-store main.go
-RUN chmod +x app-store
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o app-store main.go
 
-ENTRYPOINT ["/go/src/github.com/protosio/app-store/app-store"]
+FROM alpine:latest
+RUN apk add ca-certificates
+COPY --from=builder /go/src/github.com/protosio/app-store/app-store /usr/bin/
+RUN chmod +x /usr/bin/app-store
+
+ENTRYPOINT ["/usr/bin/app-store"]
