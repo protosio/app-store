@@ -1,33 +1,44 @@
-version: "3"
+version: "3.7"
 services:
   postgres:
     image: postgres:10.5
     volumes:
-      - /mnt/protos_volumes/volumes/app-store/pg-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=${APPSTORE_POSTGRES_PASSWD}
-      - POSTGRES_USER=${APPSTORE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${APPSTORE_POSTGRES_PASSWD:?err}
+      - POSTGRES_USER=${APPSTORE_POSTGRES_USER:?err}
     networks:
       - backend
     restart: unless-stopped
   docker-registry:
-    image: registry:2
+    image: registry:2.7.1
     volumes:
-      - /mnt/protos_volumes/volumes/app-store/registry-data:/var/lib/registry
-      - /mnt/protos_volumes/volumes/app-store/registry-config.yml:/etc/docker/registry/config.yml
+      - registry-data:/var/lib/registry
+      - registry-config:/etc/docker/registry
     networks:
       - backend
     expose:
       - 5000
     command: ["serve", "/etc/docker/registry/config.yml"]
     restart: unless-stopped
-  app-store:
-    image: app-store
-    volumes:
-      - /mnt/protos_volumes/volumes/app-store/app-store-src:/go/src/github.com/protosio/app-store
+  docker-registry-ui:
+    image: joxit/docker-registry-ui:1.4-static
+    depends_on:
+      - docker-registry
+    restart: unless-stopped
+    environment:
+      - REGISTRY_TITLE=Protos app store
+      - REGISTRY_URL=http://docker-registry:5000
+      - DELETE_IMAGES=true
+    expose:
+      - 8090
     networks:
       - backend
-    entrypoint: go run /go/src/github.com/protosio/app-store/main.go --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER} --dbpass ${APPSTORE_POSTGRES_PASSWD} --dbname ${APPSTORE_POSTGRES_USER}
+  app-store:
+    image: registry.gitlab.com/protosio/app-store:0.0.1
+    networks:
+      - backend
+    entrypoint: /usr/bin/app-store --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER} --dbpass ${APPSTORE_POSTGRES_PASSWD} --dbname ${APPSTORE_POSTGRES_USER}
     command: ["serve"]
     depends_on:
       - postgres
@@ -35,6 +46,26 @@ services:
     expose:
       - 8000
     restart: unless-stopped
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${APP_STORE_DATA_PATH:?err}/pg-data"
+  registry-data:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${APP_STORE_DATA_PATH:?err}/registry-data"
+  registry-config:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${APP_STORE_DATA_PATH:?err}/registry-config"
 
 networks:
   backend:
