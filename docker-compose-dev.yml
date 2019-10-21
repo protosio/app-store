@@ -1,0 +1,74 @@
+version: "3.7"
+services:
+  postgres:
+    image: postgres:10.5
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${APPSTORE_POSTGRES_PASSWD:?err}
+      - POSTGRES_USER=${APPSTORE_POSTGRES_USER:?err}
+    restart: unless-stopped
+  docker-registry:
+    image: registry:2.7.1
+    volumes:
+      - registry-data:/var/lib/registry
+      - registry-config:/etc/docker/registry
+    expose:
+      - 5000
+    command: ["serve", "/etc/docker/registry/config.yml"]
+    restart: unless-stopped
+  docker-registry-ui:
+    image: joxit/docker-registry-ui:1.4-static
+    depends_on:
+      - docker-registry
+    restart: unless-stopped
+    environment:
+      - REGISTRY_TITLE=Protos app store
+      - REGISTRY_URL=http://docker-registry:5000
+      - DELETE_IMAGES=true
+    expose:
+      - 8090
+  app-store:
+    image: registry.gitlab.com/protosio/app-store:dev
+    environment:
+      - APPSTORE_POSTGRES_USER=${APPSTORE_POSTGRES_USER:?err}
+      - APPSTORE_POSTGRES_PASSWD=${APPSTORE_POSTGRES_PASSWD:?err}
+    volumes:
+      - ./:/go/src/github.com/protosio/app-store
+    entrypoint: go run /go/src/github.com/protosio/app-store/main.go --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER:?err} --dbpass ${APPSTORE_POSTGRES_PASSWD:?err} --dbname ${APPSTORE_POSTGRES_USER:?err}
+    command: ["serve"]
+    depends_on:
+      - postgres
+      - docker-registry
+    expose:
+      - 8000
+    restart: unless-stopped
+  load-balancer:
+    image: abiosoft/caddy:1.0.3-no-stats
+    command: ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree=true"]
+    volumes:
+      - ./Caddyfile-dev:/etc/Caddyfile
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${APP_STORE_DATA_PATH:?err}/pg-data"
+  registry-data:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${APP_STORE_DATA_PATH:?err}/registry-data"
+  registry-config:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${APP_STORE_DATA_PATH:?err}/registry-config"
