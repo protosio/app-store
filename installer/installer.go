@@ -75,6 +75,7 @@ func installerToDB(installer Installer) (db.Installer, error) {
 
 // Add takes an installer and persists it to the database
 func Add(name string, version string, metadata InstallerMetadata) error {
+	id := util.String2SHA1(name)
 	dbinstaller, found, err := db.Get(map[string]interface{}{"name": name})
 	if err != nil {
 		return err
@@ -97,7 +98,6 @@ func Add(name string, version string, metadata InstallerMetadata) error {
 			installer.VersionMetadata[version] = metadata
 		}
 
-		id := util.String2SHA1(name)
 		if installer.ID != id {
 			log.Infof("Installer id is different, updating to %s", id)
 			installer.ID = id
@@ -113,7 +113,7 @@ func Add(name string, version string, metadata InstallerMetadata) error {
 		}
 	} else {
 		log.Infof("Installer %s not found. Adding it to the database", name)
-		installer := Installer{Name: name}
+		installer := Installer{ID: id, Name: name, VersionMetadata: map[string]InstallerMetadata{}}
 		installer.VersionMetadata[version] = metadata
 		dbinstaller, err := installerToDB(installer)
 		if err != nil {
