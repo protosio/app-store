@@ -1,0 +1,8 @@
+http://apps.protos.io {
+        proxy / http://app-store:8000 {
+                transparent
+        }
+        proxy /v2 http://docker-registry:5000 {
+                transparent
+        }
+}
