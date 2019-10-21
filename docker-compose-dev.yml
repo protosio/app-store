@@ -26,8 +26,8 @@ services:
       - REGISTRY_TITLE=Protos app store
       - REGISTRY_URL=http://docker-registry:5000
       - DELETE_IMAGES=true
-    expose:
-      - 8090
+    ports:
+      - 8090:80
   app-store:
     image: registry.gitlab.com/protosio/app-store:dev
     environment:
