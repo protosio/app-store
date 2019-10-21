@@ -38,7 +38,10 @@ services:
     image: registry.gitlab.com/protosio/app-store:0.0.1
     networks:
       - backend
-    entrypoint: /usr/bin/app-store --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER} --dbpass ${APPSTORE_POSTGRES_PASSWD} --dbname ${APPSTORE_POSTGRES_USER}
+    environment:
+      - APPSTORE_POSTGRES_USER=${APPSTORE_POSTGRES_USER:?err}
+      - APPSTORE_POSTGRES_PASSWD=${APPSTORE_POSTGRES_PASSWD:?err}
+    entrypoint: /usr/bin/app-store --dbhost postgres --dbuser ${APPSTORE_POSTGRES_USER:?err} --dbpass ${APPSTORE_POSTGRES_PASSWD:?err} --dbname ${APPSTORE_POSTGRES_USER:?err}
     command: ["serve"]
     depends_on:
       - postgres
