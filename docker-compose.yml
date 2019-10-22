@@ -31,7 +31,7 @@ services:
       - REGISTRY_URL=http://docker-registry:5000
       - DELETE_IMAGES=true
     expose:
-      - 8090
+      - 80
     networks:
       - backend
   app-store:
