@@ -80,7 +80,12 @@ func parseMetadata(labels map[string]string) (installer.InstallerMetadata, error
 		if len(labelParts) == 3 {
 			switch labelParts[2] {
 			case "capabilities":
-				metadata.Capabilities = strings.Split(value, ",")
+				capabilities := strings.Split(value, ",")
+				caps := []map[string]string{}
+				for _, cap := range capabilities {
+					caps = append(caps, map[string]string{"Name": cap})
+				}
+				metadata.Capabilities = caps
 			case "params":
 				metadata.Params = strings.Split(value, ",")
 			case "provides":

@@ -8,6 +8,7 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o app-store main.go
 FROM alpine:3.10.2
 RUN apk add ca-certificates
 COPY --from=builder /go/src/github.com/protosio/app-store/app-store /usr/bin/
+COPY --from=builder /go/src/github.com/protosio/app-store/migrations /root/migrations/
 COPY --from=builder /usr/bin/migrate /usr/bin/
 RUN chmod +x /usr/bin/app-store /usr/bin/migrate
 
