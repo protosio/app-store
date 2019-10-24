@@ -2,7 +2,6 @@ package registry
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/docker/api/types"
@@ -130,6 +131,8 @@ func getImageTags(name string) ([]string, error) {
 
 func getImageMetadata(name string, tag string) (installer.InstallerMetadata, error) {
 	var metadata installer.InstallerMetadata
+	// this nasty sleep is required (for now) because the push even is triggered before the metadata is available for an image
+	time.Sleep(5 * time.Second)
 	log.Infof("Retrieving metadata for image %s:%s", name, tag)
 	httpClient := &http.Client{}
 
@@ -137,51 +140,51 @@ func getImageMetadata(name string, tag string) (installer.InstallerMetadata, err
 	url := fmt.Sprintf("http://docker-registry:5000/v2/%s/manifests/%s", name, tag)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatal(err)
+		return metadata, errors.Wrap(err, "Failed to retrieve manifest")
 	}
 	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	r, err := httpClient.Do(req)
 	if err != nil {
-		return metadata, err
+		return metadata, errors.Wrap(err, "Failed to retrieve manifest")
 	}
 	defer r.Body.Close()
 
 	imageDigest := r.Header.Get("docker-content-digest")
 	if imageDigest == "" {
-		return metadata, fmt.Errorf("The image digest is empty. Cannot use image %s:%s", name, tag)
+		return metadata, errors.New("The image digest is empty")
 	}
 
 	bodyJSON, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return metadata, err
+		return metadata, errors.Wrap(err, "Failed to read manifest body")
 	}
 
 	var manifest schema2.Manifest
 	err = json.Unmarshal(bodyJSON, &manifest)
 	if err != nil {
-		return metadata, fmt.Errorf("Error unmarshaling image manifest: %v", err)
+		return metadata, errors.Wrap(err, "Error unmarshaling image manifest")
 	}
 
 	// Retrieves the image inspect data which contains the installer metadata
 	url = fmt.Sprintf("http://docker-registry:5000/v2/%s/blobs/%s", name, manifest.Config.Digest.String())
 	r, err = http.Get(url)
 	if err != nil {
-		return metadata, fmt.Errorf("Error retrieving image %s:%s blob: %v", name, tag, err)
+		return metadata, errors.Wrap(err, "Error retrieving image blob")
 	}
 	defer r.Body.Close()
 
 	bodyJSON, err = ioutil.ReadAll(r.Body)
 	if err != nil {
-		return metadata, fmt.Errorf("Error reading image %s:%s inspect data: %v", name, tag, err)
+		return metadata, errors.Wrap(err, "Error reading image inspect data")
 	}
 	var imageInfo types.ImageInspect
 	err = json.Unmarshal(bodyJSON, &imageInfo)
 	if err != nil {
-		return metadata, fmt.Errorf("Error unmarshalling image %s:%s inspect data: %v", name, tag, err)
+		return metadata, errors.Wrap(err, "Error unmarshalling image inspect data")
 	}
 	metadata, err = parseMetadata(imageInfo.Config.Labels)
 	if err != nil {
-		return metadata, fmt.Errorf("Could not parse metadata for image %s:%s : %s", name, tag, err)
+		return metadata, errors.Wrap(err, "Could not parse metadata for image")
 	}
 	metadata.PlatformID = name + "@" + imageDigest
 
@@ -238,7 +241,8 @@ func processPushEvent(event Event) {
 
 	metadata, err := getImageMetadata(event.Target.Repository, event.Target.Tag)
 	if err != nil {
-		log.Error(err.Error())
+		log.Errorf("Could not process image metadata for '%s'(%s): %s", event.Target.Repository, event.Target.Tag, err.Error())
+		return
 	}
 
 	err = installer.Add(event.Target.Repository, event.Target.Tag, metadata)
@@ -255,6 +259,7 @@ func ProcessEvents(events []Event) {
 			log.Debug("Ignoring event of type " + event.Action)
 			continue
 		}
-		processPushEvent(event)
+		log.Info("Received push event from registry")
+		go processPushEvent(event)
 	}
 }
