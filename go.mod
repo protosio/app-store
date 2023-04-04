@@ -5,10 +5,11 @@ go 1.13
 require (
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/docker/docker v1.13.1
+	github.com/docker/docker v20.10.24+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/google/go-cmp v0.3.1
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/google/go-cmp v0.5.5
 	github.com/gorilla/mux v1.7.3
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kr/pretty v0.1.0 // indirect
@@ -19,7 +20,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0 // indirect
-	golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	gotest.tools/v3 v3.4.0 // indirect
 )
